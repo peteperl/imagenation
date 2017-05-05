@@ -68,6 +68,8 @@ if __name__ == '__main__':
     #   Map from synset ID to a human readable string.
     # imagenet_2012_challenge_label_map_proto.pbtxt:
     #   Text representation of a protocol buffer mapping a label to synset ID.
+    modeldirarg = '/dev/images'
+    if DOWNLOAD: modeldirarg = '/tmp/imagenet'
     parser.add_argument(
         '--model_dir',
         type=str,
