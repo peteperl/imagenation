@@ -1,2 +1,2 @@
-# imagenation
+# Imagenation
 initial commit
