@@ -7,6 +7,9 @@ __pycache__/
 .idea/
 dev/
 
+#MacOC
+.DS_Store
+
 # C extensions
 *.so
 
