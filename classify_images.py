@@ -100,6 +100,5 @@ if __name__ == '__main__':
         print('***')
         print IMAGES
         print('***')
-        main()
     else:
         tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
