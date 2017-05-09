@@ -7,6 +7,7 @@ import os.path
 import re
 import sys
 import tarfile
+import time
 
 import numpy as np
 from six.moves import urllib
@@ -14,11 +15,13 @@ import tensorflow as tf
 
 # pylint: disable=line-too-long
 
-TEST = True
+TEST = False
 FLAGS = None
 DOWNLOAD = False
 DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
+TEMP_IMAGE = '/tmp/imagenet\cropped_panda.jpg'
 IMAGE_DIR = 'images'
+ROOT_DIR_WIN = '/Users/Pete/Documents/GitHub/models/tutorials/image/imagenet'
 IMAGES = []
 if not DOWNLOAD: IMAGES = [f for f in os.listdir(IMAGE_DIR) if f.endswith('.jpg')]
 
@@ -132,11 +135,15 @@ def run_inference_on_image(image):
         # Creates node ID --> English string lookup.
         node_lookup = NodeLookup()
 
+        # Gets top results
         top_k = predictions.argsort()[-FLAGS.num_top_predictions:][::-1]
+
         for node_id in top_k:
             human_string = node_lookup.id_to_string(node_id)
             score = predictions[node_id]
             print('%s (score = %.5f)' % (human_string, score))
+
+        return predictions, node_lookup, top_k
 
 
 def maybe_download_and_extract():
@@ -160,15 +167,36 @@ def maybe_download_and_extract():
 
 
 def main(_):
+    run_times = []
     if DOWNLOAD:
         maybe_download_and_extract()
         image = (FLAGS.image_file if FLAGS.image_file else
                  os.path.join(FLAGS.model_dir, 'cropped_panda.jpg'))
+        ts = time.time()
+        print(image)
         run_inference_on_image(image)
+        tf = time.time()
+        run_times.append(tf-ts)
     else:
-        for image in IMAGES:
-            run_inference_on_image(IMAGE_DIR + '/' + image)
+        print(IMAGES)
+        for image in IMAGES[:-1]:
+            imagedir = ROOT_DIR_WIN + '/' + IMAGE_DIR
+            # print(imagedir)
+            imaged = os.path.join(imagedir, image)
+            ts = time.time()
+            print(imaged)
+            predictions, node_lookup, top_k = run_inference_on_image(imaged)
+            tf = time.time()
+            runtime = tf-ts
+            top_k_list = []
+            for node_id in top_k:
+                human_string = node_lookup.id_to_string(node_id)
+                score = predictions[node_id]
+                top_k_list.append((human_string, score))
+
+            run_times.append((image, runtime, top_k_list))
     print('DONE')
+    print(run_times)
 
 
 if __name__ == '__main__':
@@ -180,6 +208,7 @@ if __name__ == '__main__':
     # imagenet_2012_challenge_label_map_proto.pbtxt:
     #   Text representation of a protocol buffer mapping a label to synset ID.
     modeldirarg = '/dev/images'
+    modeldirarg = '/tmp/imagenet'
     if DOWNLOAD: modeldirarg = '/tmp/imagenet'
     parser.add_argument(
         '--model_dir',
